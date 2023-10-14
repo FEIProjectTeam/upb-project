@@ -19,6 +19,6 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - .:/app
+      - .:/project
     depends_on:
       - db
