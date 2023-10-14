@@ -8,12 +8,12 @@ Cieľom zadania je implementovať základnú štruktúru webovej aplikácie (pod
 1. Vyberte si technológie, ktoré budete použiť na backend, frontend, databázu (napr. Flask (python) + Postgresql)
 2. Implementujte základnú štruktúru pre docker-compose spolu so všetkými kontajnermi
 3. Implementujte základnú štruktúru databázy, spolu s testovacími dátami, ktoré sa použijú na šifrovanie
-4. Vyberte si kryptografické API pre vami vybranú platformu a implementujte:
-        a) Extrakcia testovacích dát z databázy (prostredníctvom vybraného databázového API)
-        b) Zašifrovanie dát vybranou symetrickou šifrou (symetrický kľúč sa vygeneruje na serveri)
-        c) Zašifrovanie symetrického kľúča asymetrickým kľúčom používateľa
-        d) Implementujte dešifrovanie súboru (zatiaľ stačí na strane servera)
-        e) Implementujte overenie integrity súbor
+4. Vyberte si kryptografické API pre vami vybranú platformu a implementujte:  
+        a) Extrakcia testovacích dát z databázy (prostredníctvom vybraného databázového API)  
+        b) Zašifrovanie dát vybranou symetrickou šifrou (symetrický kľúč sa vygeneruje na serveri)  
+        c) Zašifrovanie symetrického kľúča asymetrickým kľúčom používateľa  
+        d) Implementujte dešifrovanie súboru (zatiaľ stačí na strane servera)  
+        e) Implementujte overenie integrity súbor  
 
 Okrem zdrojových kódov sa odovzdáva dokumentácia riešenia, s popisom použitých technológií/API a taktiež popisom štruktúry zašifrovaného súboru.
 
