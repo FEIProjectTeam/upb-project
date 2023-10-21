@@ -2,6 +2,7 @@ version: '2.1'
 
 services:
   db:
+    container_name: upb-db
     restart: always
     image: postgres:14
     environment:
@@ -14,11 +15,12 @@ services:
       - "5432:5432"
   
   backend-app:
+    container_name: upb-backend
     restart: on-failure
     build: .
     ports:
       - 8000:8000
     volumes:
-      - .:/project
+      - .:/app
     depends_on:
       - db
