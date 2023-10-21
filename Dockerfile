@@ -1,11 +1,11 @@
-FROM python:3.6
+FROM python:3.11
 
-RUN mkdir /project
-WORKDIR /project
-COPY . /project/
+RUN mkdir /app
+WORKDIR /app
+COPY . /app
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-EXPOSE 5000
+EXPOSE 8000
 
-CMD ["tail", "-f", "/dev/null"]
+CMD ["python", "project/manage.py", "runserver"]
