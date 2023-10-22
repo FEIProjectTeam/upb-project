@@ -17,6 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from canteen.views import ListMealsApi, EncryptView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/meals/', ListMealsApi.as_view()),
+    path('encrypt/', EncryptView.as_view())
 ]
