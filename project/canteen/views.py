@@ -14,6 +14,7 @@ from canteen.services.encryption import (
     decrypt_with_rsa_prv_key,
     symmetric_decrypt,
     get_hmac,
+    pem_to_pub_key,
 )
 from canteen.services.meals import get_all_meals
 
@@ -42,6 +43,12 @@ class EncryptView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        # Client first generates rsa keys and sends pem to server
+        client_private_key, client_public_key, client_pem = generate_rsa_keys()
+
+        # Server retrieves public key from client's pem
+        public_key = pem_to_pub_key(client_pem)
+
         orig_data = MealSerializer(get_all_meals(), many=True).data
         orig_data = json.dumps(orig_data)
         context["orig_data"] = orig_data
@@ -52,16 +59,32 @@ class EncryptView(TemplateView):
 
         orig_hmac = get_hmac(symmetric_key, encrypted_data)
 
-        private_key, public_key, pem = generate_rsa_keys()
-
         encrypted_symmetric_key = encrypt_with_rsa_pub_key(public_key, symmetric_key)
         context["encrypted_symmetric_key"] = encrypted_symmetric_key.hex()
 
-        decrypted_symmetric_key = decrypt_with_rsa_prv_key(
-            private_key, encrypted_symmetric_key
+        encryption_message = json.dumps(
+            {
+                "iv": iv.hex(),
+                "hmac": orig_hmac.hex(),
+                "symmetric_key": encrypted_symmetric_key.hex(),
+                "cyphertext": encrypted_data.hex(),
+            }
         )
 
-        if orig_hmac == get_hmac(decrypted_symmetric_key, encrypted_data):
+        # Here is encryption message sent to the recipient
+
+        received_message = json.loads(encryption_message)
+
+        rcv_iv = bytes.fromhex(received_message["iv"])
+        rcv_hmac = bytes.fromhex(received_message["hmac"])
+        rcv_symmetric_key = bytes.fromhex(received_message["symmetric_key"])
+        rcv_cyphertext = bytes.fromhex(received_message["cyphertext"])
+
+        decrypted_symmetric_key = decrypt_with_rsa_prv_key(
+            client_private_key, rcv_symmetric_key
+        )
+
+        if rcv_hmac == get_hmac(decrypted_symmetric_key, rcv_cyphertext):
             context[
                 "hmac_result"
             ] = "Data is authentic and intact, proceed with decryption."
@@ -70,7 +93,9 @@ class EncryptView(TemplateView):
                 "hmac_result"
             ] = "Data integrity check failed, consider the data compromised."
 
-        decrypted_data = symmetric_decrypt(decrypted_symmetric_key, iv, encrypted_data)
+        decrypted_data = symmetric_decrypt(
+            decrypted_symmetric_key, rcv_iv, rcv_cyphertext
+        )
         context["decrypted_data"] = decrypted_data.decode("utf-8")
 
         return context
