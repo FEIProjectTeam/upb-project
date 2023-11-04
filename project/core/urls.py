@@ -34,20 +34,10 @@ urlpatterns = [
     path("api/generate/", GenerateDummyDatabaseApi.as_view()),
     path("encrypt/", EncryptView.as_view()),
     path("users/", include('users.urls')),
-
     path('admin/', admin.site.urls),
 
     path('', include('users.urls')),
-
-    path('login/', CustomLoginView.as_view(redirect_authenticated_user=True, template_name='users/login.html',
-                                           authentication_form=LoginForm), name='login'),
-
+    path('login/', CustomLoginView.as_view(redirect_authenticated_user=True, template_name='users/login.html', authentication_form=LoginForm), name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name='users/logout.html'), name='logout'),
-
-
-    re_path(r'^oauth/', include('social_django.urls', namespace='social')),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
-

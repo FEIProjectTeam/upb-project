@@ -60,8 +60,7 @@ class LoginForm(AuthenticationForm):
                                                                  'id': 'password',
                                                                  'name': 'password',
                                                                  }))
-    remember_me = forms.BooleanField(required=False)
-
+    
     class Meta:
         model = User
-        fields = ['username', 'password', 'remember_me']
+        fields = ['username', 'password']
