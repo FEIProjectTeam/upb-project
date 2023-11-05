@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
-from .models import Profile
+from django.core.validators import RegexValidator
 
 
 class RegisterForm(UserCreationForm):
@@ -32,7 +32,8 @@ class RegisterForm(UserCreationForm):
                                                                   'class': 'form-control',
                                                                   'data-toggle': 'password',
                                                                   'id': 'password',
-                                                                  }))
+                                                                  }),
+                                validators=[RegexValidator(regex='^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$',message='The password must contain at least one uppercase letter, one lowercase letter, one digit, and at least one special character.')])
     password2 = forms.CharField(max_length=50,
                                 required=True,
                                 widget=forms.PasswordInput(attrs={'placeholder': 'Confirm Password',
