@@ -183,14 +183,14 @@ const csrftoken = getCookie('csrftoken');
 
 function sendPublicKeyToServer(pem) {
     const formData = new FormData();
-    formData.append('public_key', pem); // Make sure 'public_key' is the correct field name for the form
+    formData.append('public_key', pem);
 
     fetch('/encrypt/pub-key/', {
         method: 'POST',
         headers: {
-            'X-CSRFToken': csrftoken, // Include the CSRF token
+            'X-CSRFToken': csrftoken,
         },
-        body: formData, // Send as FormData instead of JSON
+        body: formData,
     })
     .catch((error) => {
         console.error('Error:', error);

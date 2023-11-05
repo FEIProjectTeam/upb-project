@@ -3,16 +3,16 @@
 {% block content %}
 
 <div class="container">
-  <h2>Decrypt Data</h2>
-  <button id="loadData" class="btn btn-primary">Load Encrypted Data</button>
+  <h4 class="my-3">Decrypt with Private Key</h4>
+  <button id="loadData" class="btn btn-primary mb-2">Load Encrypted Data</button>
   <pre id="encryptedDataDisplay"></pre>
   
   <div class="form-group">
     <label for="privateKeyFile">Private Key File:</label>
     <input type="file" id="privateKeyFile" class="form-control-file">
   </div>
-  <button id="decryptButton" class="btn btn-primary">Decrypt Data</button>
-  <h3>Decrypted Data:</h3>
+  <button id="decryptButton" class="btn btn-primary mb-2">Decrypt Data</button>
+  <h5>Decrypted Data:</h5>
   <pre id="decryptedDataDisplay"></pre>
 </div>
 
