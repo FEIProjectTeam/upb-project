@@ -34,14 +34,45 @@ function exportPublicKey(key) {
     });
 }
 
+function importPrivateKey(pem) {
+    // Fetch the part of the PEM string between header and footer
+    const pemHeader = "-----BEGIN PRIVATE KEY-----";
+    const pemFooter = "-----END PRIVATE KEY-----";
+    const pemContents = pem.substring(pemHeader.length, pem.length - pemFooter.length);
+    // Base64 decode the string to get the binary data
+    const binaryDerString = window.atob(pemContents);
+    // Convert from a binary string to an ArrayBuffer
+    const binaryDer = str2ab(binaryDerString);
+
+    return window.crypto.subtle.importKey(
+        "pkcs8",
+        binaryDer,
+        {
+            name: "RSA-OAEP",
+            hash: "SHA-256",
+        },
+        true,
+        ["decrypt"]
+    );
+}
+
+function str2ab(str) {
+    const buffer = new ArrayBuffer(str.length);
+    const bufferView = new Uint8Array(buffer);
+    for (let i=0; i < str.length; i++) {
+        bufferView[i] = str.charCodeAt(i);
+    }
+    return buffer;
+}
+
 // Function to decrypt data with the private key
-function decryptWithPrivateKey(encryptedDataBase64) {
+function decryptWithPrivateKey(encryptedDataBase64, privateKey) {
     const encryptedBuffer = base64ToArrayBuffer(encryptedDataBase64);
     return window.crypto.subtle.decrypt(
         {
             name: "RSA-OAEP"
         },
-        window.privateKey, // from generateKey or importKey above
+        privateKey, // This should be a CryptoKey object
         encryptedBuffer
     )
     .then(function(decryptedBuffer){
@@ -50,6 +81,7 @@ function decryptWithPrivateKey(encryptedDataBase64) {
     })
     .catch(function(err){
         console.error('Error decrypting data:', err);
+        throw err; // Re-throw the error to be caught by the caller
     });
 }
 
@@ -150,3 +182,27 @@ function generateAndExportKey() {
 
 // Start the key generation and export process
 //generateAndExportKey();
+
+// Function to convert an ArrayBuffer to PEM format string for a private key
+function convertArrayBufferToPrivatePem(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    const base64 = window.btoa(binary);
+    return `-----BEGIN PRIVATE KEY-----\n${base64}\n-----END PRIVATE KEY-----`;
+}
+
+// Function to export the private key in PKCS#8 PEM format
+function exportPrivateKey(privateKey) {
+    return window.crypto.subtle.exportKey(
+        "pkcs8",
+        privateKey
+    )
+    .then(convertArrayBufferToPrivatePem)
+    .catch(function(err){
+        console.error('Error exporting private key:', err);
+    });
+}
+
