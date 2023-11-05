@@ -23,6 +23,7 @@ from canteen.views import (
     UploadPubKeyView,
     encrypt_page,
     genRSAKeysView,
+    DecryptPriKeyView,
 )
 
 from django.urls import path, include, re_path
@@ -44,6 +45,9 @@ urlpatterns = [
     path('comun/', encrypt_page, name='encrypt-page'),  
     path(
         "encrypt/pub-key/", UploadPubKeyView.as_view(), name="encryption-upload-pub-key"
+    ),
+    path(
+        "decrypt/pri-key/", DecryptPriKeyView.as_view(), name="encryption-decrypt-pri-key"
     ),
     path(
         "encrypt/gen-rsa-keys/",

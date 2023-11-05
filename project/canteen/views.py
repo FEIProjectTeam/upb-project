@@ -1,5 +1,6 @@
 import json
 import base64
+import traceback
 
 from cryptography.hazmat.primitives import serialization
 from django.contrib import messages
@@ -14,6 +15,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework import status
 from django.shortcuts import render
+
 
 
 from canteen.forms import UploadPubKeyForm
@@ -34,10 +36,40 @@ def encrypt_page(request):
     return render(request, 'communication.html')
 
 class ListMealsApi(APIView):
+    
     def get(self, request):
-        data = MealSerializer(get_all_meals(), many=True).data
-        return Response(data, HTTP_200_OK)
+        try:
+            meals = get_all_meals()
+            data = MealSerializer(meals, many=True).data
+            json_data = json.dumps(data)  # Convert list of dicts to JSON string
+            json_data_bytes = json_data.encode('utf-8')  # Convert string to bytes
 
+            public_key_pem = request.user.profile.public_key
+            public_key = pem_to_pub_key(public_key_pem.encode())
+
+            cipheredData = encrypt_with_rsa_pub_key(public_key, json_data_bytes)
+
+            encrypted_data = base64.b64encode(cipheredData).decode('utf-8')
+
+            return JsonResponse({
+                "status": "success",
+                "encryptedData": encrypted_data
+            }, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            traceback.print_exc()  # This will print the stack trace to the console
+            return JsonResponse({"status": "error", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+
+class DecryptPriKeyView(View):
+    template_name = "canteen/decrypt_pri_key.html"
+
+    def get(self, request, *args, **kwargs):
+        
+        return render(request, self.template_name)
+
+    
 
 class GenerateDummyDatabaseApi(APIView):
     def get(self, request):
@@ -149,11 +181,12 @@ class EncryptView(APIView):
         try:
             # Access the PEM from the POST data
             public_key_pem = request.data.get('publicKey')
+            
             if public_key_pem:
                 # Convert PEM to public key object
                 public_key = pem_to_pub_key(public_key_pem.encode())
 
-                
+
 
                 # Here you would retrieve the data to be encrypted from your database
                 # For this example, let's assume we are encrypting a simple message
