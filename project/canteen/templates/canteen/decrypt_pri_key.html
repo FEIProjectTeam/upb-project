@@ -2,84 +2,84 @@
 {% block title %} Decrypt Data {% endblock title %}
 {% block content %}
 
-<div class="container">
-  <h4 class="my-3">Decrypt with Private Key</h4>
-  <button id="loadData" class="btn btn-primary mb-2">Load Encrypted Data</button>
-  <pre id="encryptedDataDisplay"></pre>
-  
-  <div class="form-group">
-    <label for="privateKeyFile">Private Key File:</label>
-    <input type="file" id="privateKeyFile" class="form-control-file">
-  </div>
-  <button id="decryptButton" class="btn btn-primary mb-2">Decrypt Data</button>
-  <h5>Decrypted Data:</h5>
-  <pre id="decryptedDataDisplay"></pre>
-</div>
+    <div class="container">
+        <h4 class="my-3">Decrypt with Private Key</h4>
+        <button id="loadData" class="btn btn-primary mb-2">Load Encrypted Data</button>
+        <pre id="encryptedDataDisplay"></pre>
 
-<script src="/static/canteen/client.js"></script>
-<script>
-    document.getElementById('loadData').addEventListener('click', function() {
-        fetchEncryptedData();
-    });
+        <div class="form-group">
+            <label for="privateKeyFile">Private Key File:</label>
+            <input type="file" id="privateKeyFile" class="form-control-file">
+        </div>
+        <button id="decryptButton" class="btn btn-primary mb-2">Decrypt Data</button>
+        <h5>Decrypted Data:</h5>
+        <pre id="decryptedDataDisplay"></pre>
+    </div>
 
-    document.getElementById('decryptButton').addEventListener('click', function() {
-        const encryptedData = document.getElementById('encryptedDataDisplay').textContent;
-        const privateKeyFile = document.getElementById('privateKeyFile').files[0];
-        
-        if (privateKeyFile && encryptedData) {
-            decryptData(encryptedData, privateKeyFile);
-        } else {
-            alert('Please provide both the encrypted data and the private key file.');
+    <script src="/static/canteen/client.js"></script>
+    <script>
+        document.getElementById('loadData').addEventListener('click', function () {
+            fetchEncryptedData();
+        });
+
+        document.getElementById('decryptButton').addEventListener('click', function () {
+            const encryptedData = document.getElementById('encryptedDataDisplay').textContent;
+            const privateKeyFile = document.getElementById('privateKeyFile').files[0];
+
+            if (privateKeyFile && encryptedData) {
+                decryptData(encryptedData, privateKeyFile);
+            } else {
+                alert('Please provide both the encrypted data and the private key file.');
+            }
+        });
+
+        function fetchEncryptedData() {
+            fetch('/api/meals/') // Adjust the endpoint as needed
+                .then(response => {
+                    // First check if the response is ok (status 200-299)
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Access the encryptedData property of the response object
+                    const encryptedString = data.encryptedData;
+                    if (encryptedString) {
+                        // If it's there, display it properly
+                        document.getElementById('encryptedDataDisplay').textContent = encryptedString;
+                    } else {
+                        // If not, display an error or placeholder text
+                        document.getElementById('encryptedDataDisplay').textContent = 'No encrypted data found.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Display some feedback to the user that an error occurred
+                    document.getElementById('encryptedDataDisplay').textContent = 'Error loading encrypted data.';
+                });
         }
-    });
 
-    function fetchEncryptedData() {
-    fetch('/api/meals/') // Adjust the endpoint as needed
-    .then(response => {
-        // First check if the response is ok (status 200-299)
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
+
+        function decryptData(encryptedData, privateKeyFile) {
+            const reader = new FileReader();
+
+            reader.onload = async function (e) {
+                try {
+                    const privateKeyText = e.target.result;
+
+                    const privateKey = await importPrivateKey(privateKeyText);
+
+                    const decryptedData = await decryptWithPrivateKey(encryptedData, privateKey);
+                    document.getElementById('decryptedDataDisplay').textContent = decryptedData;
+                } catch (error) {
+                    console.error('Decryption error:', error.message);
+                    alert('Decryption failed: ' + error.message);
+                }
+            };
+
+            reader.readAsText(privateKeyFile);
         }
-        return response.json();
-    })
-    .then(data => {
-        // Access the encryptedData property of the response object
-        const encryptedString = data.encryptedData;
-        if (encryptedString) {
-            // If it's there, display it properly
-            document.getElementById('encryptedDataDisplay').textContent = encryptedString;
-        } else {
-            // If not, display an error or placeholder text
-            document.getElementById('encryptedDataDisplay').textContent = 'No encrypted data found.';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        // Display some feedback to the user that an error occurred
-        document.getElementById('encryptedDataDisplay').textContent = 'Error loading encrypted data.';
-    });
-}
-
-
-function decryptData(encryptedData, privateKeyFile) {
-    const reader = new FileReader();
-    
-    reader.onload = async function(e) {
-    try {
-        const privateKeyText = e.target.result;
-        
-        const privateKey = await importPrivateKey(privateKeyText);
-        
-        const decryptedData = await decryptWithPrivateKey(encryptedData, privateKey);
-        document.getElementById('decryptedDataDisplay').textContent = decryptedData;
-    } catch (error) {
-        console.error('Decryption error:', error.message);
-        alert('Decryption failed: ' + error.message);
-    }
-};
-    
-    reader.readAsText(privateKeyFile);
-}
-</script>
+    </script>
 
 {% endblock content %}

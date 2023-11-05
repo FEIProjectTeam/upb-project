@@ -13,7 +13,6 @@
             <label for="publicKeyDisplay">Public Key:</label>
             <textarea id="publicKeyDisplay" class="form-control" cols="40" rows="8" readonly></textarea>
         </div>
-        {#        <pre id="publicKeyDisplay"></pre>#}
     </div>
 
     <script>
@@ -72,12 +71,6 @@
 
             document.body.removeChild(element);
         }
-
-
-        // You will need to define the following functions according to your security needs:
-        // - exportPublicKey(publicKey)
-        // - exportPrivateKey(privateKey)
-        // - sendPublicKeyToServer(pem)
     </script>
 
 {% endblock content %}
