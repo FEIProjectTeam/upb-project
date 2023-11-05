@@ -1,4 +1,5 @@
 import json
+import base64
 
 from cryptography.hazmat.primitives import serialization
 from django.contrib import messages
@@ -8,6 +9,12 @@ from django.views.generic import TemplateView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
+from django.http import JsonResponse
+from rest_framework.parsers import JSONParser
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework import status
+from django.shortcuts import render
+
 
 from canteen.forms import UploadPubKeyForm
 from canteen.models import Meal
@@ -23,6 +30,8 @@ from canteen.services.encryption import (
 )
 from canteen.services.meals import get_all_meals
 
+def encrypt_page(request):
+    return render(request, 'communication.html')
 
 class ListMealsApi(APIView):
     def get(self, request):
@@ -59,11 +68,12 @@ class UploadPubKeyView(View):
         return render(request, self.template_name, {"form": form})
 
 
-class GenRSAKeysView(View):
-    template_name = "canteen/gen_rsa_keys.html"
+def genRSAKeysView(request):
+    return render(request, "canteen/gen_rsa_keys.html")
 
 
-class EncryptView(TemplateView):
+
+""" class EncryptView(TemplateView):
     template_name = "encryption.html"
 
     def get_context_data(self, **kwargs):
@@ -130,4 +140,43 @@ class EncryptView(TemplateView):
         )
         context["decrypted_data"] = decrypted_data.decode("utf-8")
 
-        return context
+        return context """
+
+class EncryptView(APIView):
+    
+    @parser_classes((JSONParser,))
+    def post(self, request, *args, **kwargs):
+        try:
+            # Access the PEM from the POST data
+            public_key_pem = request.data.get('publicKey')
+            if public_key_pem:
+                # Convert PEM to public key object
+                public_key = pem_to_pub_key(public_key_pem.encode())
+
+                
+
+                # Here you would retrieve the data to be encrypted from your database
+                # For this example, let's assume we are encrypting a simple message
+                plaintext_data = "Data to encrypt"
+
+                # Encrypt data using the RSA public key
+                ciphertext = encrypt_with_rsa_pub_key(public_key, plaintext_data.encode())
+
+                # Encode the ciphertext to base64 to send as JSON
+                encrypted_data = base64.b64encode(ciphertext).decode('utf-8')
+                
+                return JsonResponse({
+                    "status": "success",
+                    "encryptedData": encrypted_data
+                }, status=status.HTTP_200_OK)
+            else:
+                return JsonResponse({
+                    "status": "error", 
+                    "message": "No public key provided"
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            # Catch any other errors, such as issues with encryption
+            return JsonResponse({
+                "status": "error", 
+                "message": str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)

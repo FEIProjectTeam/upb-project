@@ -21,6 +21,8 @@ from canteen.views import (
     EncryptView,
     GenerateDummyDatabaseApi,
     UploadPubKeyView,
+    encrypt_page,
+    genRSAKeysView,
 )
 
 from django.urls import path, include, re_path
@@ -31,20 +33,22 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from users.views import CustomLoginView
 
+
 from users.forms import LoginForm
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/meals/", ListMealsApi.as_view()),
     path("api/generate/", GenerateDummyDatabaseApi.as_view()),
-    # path("encrypt/", EncryptView.as_view(), name="encryption"),
+    path("encrypt/", EncryptView.as_view()),
+    path('comun/', encrypt_page, name='encrypt-page'),  
     path(
         "encrypt/pub-key/", UploadPubKeyView.as_view(), name="encryption-upload-pub-key"
     ),
     path(
         "encrypt/gen-rsa-keys/",
-        UploadPubKeyView.as_view(),
-        name="encryption-upload-pub-key",
+        genRSAKeysView,
+        name="encryption-gen-rsa-keys",
     ),
     path("users/", include("users.urls")),
     path("", include("users.urls")),
@@ -64,3 +68,4 @@ urlpatterns = [
     ),
     re_path(r"^oauth/", include("social_django.urls", namespace="social")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    

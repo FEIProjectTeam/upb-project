@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
-from django.contrib.messages.views import SuccessMessageMixin
+# from django.contrib.messages.views import SuccessMessageMixin
 from django.views import View
-from django.contrib.auth.decorators import login_required
+# from django.contrib.auth.decorators import login_required
 
 from .forms import RegisterForm, LoginForm
 

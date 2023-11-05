@@ -1,10 +1,50 @@
 {% extends "users/base.html" %}
 {% block title %} Upload Public Key {% endblock title %}
 {% block content %}
-    <h4 class="my-3">Generate RSA keys</h4>
-    <form action="#" method="post">
-        {% csrf_token %}
-        {{ form }}
-        <button type="submit" class="btn btn-primary mt-2">Submit</button>
-    </form>
+
+<script src="/static/canteen/client.js"></script>
+<div>
+    <button id="generateKey">Generate Keys</button>
+    <button id="sendKey" style="display: none;">Send Public Key</button>
+    <pre id="publicKeyDisplay"></pre>
+    <pre id="decryptedDataDisplay"></pre>
+</div>
+
+<script>
+    document.getElementById('generateKey').addEventListener('click', generateAndSendKeys);
+    document.getElementById('sendKey').addEventListener('click', function() {
+        const pem = document.getElementById('publicKeyDisplay').textContent;
+        sendPublicKeyToServer(pem);
+    });
+
+    function generateAndSendKeys() {
+    window.crypto.subtle.generateKey(
+        {
+            name: "RSA-OAEP",
+            modulusLength: 2048, // can be 1024, 2048, or 4096
+            publicExponent: new Uint8Array([0x01, 0x00, 0x01]), // 65537
+            hash: {name: "SHA-256"} // can be "SHA-1", "SHA-256", "SHA-384", or "SHA-512"
+        },
+        true, // whether the key is extractable (i.e., can be used in exportKey)
+        ["encrypt", "decrypt"] // must be ["encrypt", "decrypt"] or ["wrapKey", "unwrapKey"]
+    )
+    .then(function(keyPair){
+        // Returns a keypair object with publicKey and privateKey
+        // Expose the private key to the window object (not recommended for production! See note below)
+        window.privateKey = keyPair.privateKey;
+        return exportPublicKey(keyPair.publicKey);
+    })
+    .then(function(pem) {
+        document.getElementById('publicKeyDisplay').textContent = pem;
+        document.getElementById('sendKey').style.display = 'block';
+    })
+    .catch(function(err) {
+        console.error(err);
+    });
+}
+
+
+</script>
+
+
 {% endblock content %}
