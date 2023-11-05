@@ -8,6 +8,9 @@ from .forms import RegisterForm
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 
+from django.contrib.auth.models import User
+from .models import Profile 
+
 
 def home(request):
     return render(request, 'users/home.html')
@@ -33,11 +36,13 @@ class RegisterView(View):
         form = self.form_class(request.POST)
 
         if form.is_valid():
-            form.save()
+            user = form.save()  # This saves the User and returns the instance
+
+            # Now create a Profile instance for the new user
+            Profile.objects.create(user=user)
 
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}')
-
             return redirect(to='login')
 
         return render(request, self.template_name, {'form': form})
