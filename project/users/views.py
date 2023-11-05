@@ -5,15 +5,20 @@ from django.views import View
 
 from .forms import RegisterForm
 
-from django_ratelimit.decorators import ratelimit
+from django_ratelimit.decorators import ratelimit,Ratelimited
 from django.utils.decorators import method_decorator
 
 from django.contrib.auth.models import User
 from .models import Profile 
-
+from django.http import HttpResponseForbidden
 
 def home(request):
     return render(request, 'users/home.html')
+
+def handler403(request, exception=None):
+    if isinstance(exception, Ratelimited):
+        return render(request,'users/429.html',status=429)
+    return HttpResponseForbidden('Forbidden')
 
 class RegisterView(View):
     form_class = RegisterForm
