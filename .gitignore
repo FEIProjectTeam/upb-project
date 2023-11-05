@@ -162,3 +162,5 @@ cython_debug/
 # Exclude database
 .pgdata
 .idea/
+
+project/**/migrations/

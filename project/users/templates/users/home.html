@@ -1,0 +1,25 @@
+{% extends "users/base.html" %}
+{% block title %} Home Page {% endblock title%}
+{% block content %}
+    <div class="jumbotron">
+        <h1 class="display-4">Vitaj, {{user.username|default:'návštevník'}}</h1>
+        
+            {% if user.is_authenticated %}
+                <p class="lead">
+                    Ako prihlásený používateľ môžeš požiadať o šifrovanú správu
+                </p>
+                <hr class="my-4">
+                <p class="lead">
+                <a class="btn btn-primary btn-lg" href="{% url 'logout' %}" role="button">Odhlásiť sa</a>
+            {% else %}
+                <p class="lead">
+                    Pred používaním aplikácie je potrebné prihlásenie
+                </p>
+                <hr class="my-4">
+                <p class="lead">
+                <a class="btn btn-primary btn-lg" href="{% url 'login' %}" role="button">Prihlásiť sa</a>
+            {% endif %}
+        </p>
+    </div>
+
+{% endblock content %}

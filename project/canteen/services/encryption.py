@@ -60,7 +60,7 @@ def generate_rsa_keys():
         public_exponent=65537, key_size=2048, backend=default_backend()
     )
     public_key = private_key.public_key()
-
+ 
     # Serialize public key for sharing with others
     pem = public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
