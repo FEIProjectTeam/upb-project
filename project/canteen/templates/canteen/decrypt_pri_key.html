@@ -65,18 +65,18 @@ function decryptData(encryptedData, privateKeyFile) {
     const reader = new FileReader();
     
     reader.onload = async function(e) {
-        try {
-            const privateKeyText = e.target.result;
-            // You need to import the private key from the text
-            const privateKey = await importPrivateKey(privateKeyText);
-            // Then use that key to decrypt the data
-            const decryptedData = await decryptWithPrivateKey(encryptedData, privateKey);
-            document.getElementById('decryptedDataDisplay').textContent = decryptedData;
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Decryption failed.');
-        }
-    };
+    try {
+        const privateKeyText = e.target.result;
+        
+        const privateKey = await importPrivateKey(privateKeyText);
+        
+        const decryptedData = await decryptWithPrivateKey(encryptedData, privateKey);
+        document.getElementById('decryptedDataDisplay').textContent = decryptedData;
+    } catch (error) {
+        console.error('Decryption error:', error.message);
+        alert('Decryption failed: ' + error.message);
+    }
+};
     
     reader.readAsText(privateKeyFile);
 }

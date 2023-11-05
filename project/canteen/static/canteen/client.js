@@ -34,16 +34,55 @@ function exportPublicKey(key) {
     });
 }
 
+function base64ToArrayBuffer(base64) {
+    var binary_string = window.atob(base64);
+    var len = binary_string.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
 function importPrivateKey(pem) {
+    // Replace headers and footers with empty strings and remove any newlines
+    const pemContents = pem.replace(/(-----(BEGIN|END) PRIVATE KEY-----|\r\n|\n|\r)/g, '');
+
+    // Base64 decode the string to get the binary data
+    const binaryDer = base64ToArrayBuffer(pemContents);
+    
+    // Import the key into the crypto subsystem
+    return window.crypto.subtle.importKey(
+        "pkcs8", // Make sure this matches the format of your PEM
+        binaryDer,
+        {
+            name: "RSA-OAEP",
+            hash: "SHA-256",
+        },
+        true,
+        ["decrypt"]
+    ).then(cryptoKey => {
+        console.log('Key imported successfully:', cryptoKey);
+        return cryptoKey;
+    }).catch(error => {
+        console.error('Error importing key:', error);
+    });
+}
+
+
+
+/* function importPrivateKey(pem) {
     // Fetch the part of the PEM string between header and footer
-    const pemHeader = "-----BEGIN PRIVATE KEY-----";
-    const pemFooter = "-----END PRIVATE KEY-----";
+    const pemHeader = "-----BEGIN RSA PRIVATE KEY-----";
+    const pemFooter = "-----END RSA PRIVATE KEY-----";
     const pemContents = pem.substring(pemHeader.length, pem.length - pemFooter.length);
+    
     // Base64 decode the string to get the binary data
     const binaryDerString = window.atob(pemContents);
+    
     // Convert from a binary string to an ArrayBuffer
     const binaryDer = str2ab(binaryDerString);
-
+    console.log(binaryDer)
     return window.crypto.subtle.importKey(
         "pkcs8",
         binaryDer,
@@ -53,8 +92,10 @@ function importPrivateKey(pem) {
         },
         true,
         ["decrypt"]
-    );
-}
+    ).catch(error => {
+        console.error('Error:', error);
+    });
+} */
 
 function str2ab(str) {
     const buffer = new ArrayBuffer(str.length);
