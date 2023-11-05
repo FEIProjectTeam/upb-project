@@ -1,10 +1,15 @@
 import json
 
+from cryptography.hazmat.primitives import serialization
+from django.contrib import messages
+from django.shortcuts import render
+from django.views import View
 from django.views.generic import TemplateView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 
+from canteen.forms import UploadPubKeyForm
 from canteen.models import Meal
 from canteen.serializers import MealSerializer
 from canteen.services.encryption import (
@@ -37,6 +42,27 @@ class GenerateDummyDatabaseApi(APIView):
             return Response(status=HTTP_200_OK)
 
 
+class UploadPubKeyView(View):
+    template_name = "canteen/upload_pub_key.html"
+
+    def get(self, request, *args, **kwargs):
+        form = UploadPubKeyForm(instance=request.user.profile)
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request, *args, **kwargs):
+        form = UploadPubKeyForm(request.POST, instance=request.user.profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Public key was successfully updated.")
+        else:
+            messages.error(request, f"Public key could not be updated.")
+        return render(request, self.template_name, {"form": form})
+
+
+class GenRSAKeysView(View):
+    template_name = "canteen/gen_rsa_keys.html"
+
+
 class EncryptView(TemplateView):
     template_name = "encryption.html"
 
@@ -45,7 +71,13 @@ class EncryptView(TemplateView):
 
         # Client first generates rsa keys and sends pem to server
         client_private_key, client_public_key, client_pem = generate_rsa_keys()
-
+        context["pub_key"] = client_public_key
+        context["pem_key"] = client_pem
+        context["prv_key"] = client_private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        ).decode("utf-8")
         # Server retrieves public key from client's pem
         public_key = pem_to_pub_key(client_pem)
 

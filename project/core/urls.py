@@ -16,7 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 
-from canteen.views import ListMealsApi, EncryptView, GenerateDummyDatabaseApi
+from canteen.views import (
+    ListMealsApi,
+    EncryptView,
+    GenerateDummyDatabaseApi,
+    UploadPubKeyView,
+)
 
 from django.urls import path, include, re_path
 
@@ -32,22 +37,30 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/meals/", ListMealsApi.as_view()),
     path("api/generate/", GenerateDummyDatabaseApi.as_view()),
-    path("encrypt/", EncryptView.as_view()),
-    path("users/", include('users.urls')),
-
-    path('admin/', admin.site.urls),
-
-    path('', include('users.urls')),
-
-    path('login/', CustomLoginView.as_view(redirect_authenticated_user=True, template_name='users/login.html',
-                                           authentication_form=LoginForm), name='login'),
-
-    path('logout/', auth_views.LogoutView.as_view(template_name='users/logout.html'), name='logout'),
-
-
-    re_path(r'^oauth/', include('social_django.urls', namespace='social')),
-    
+    # path("encrypt/", EncryptView.as_view(), name="encryption"),
+    path(
+        "encrypt/pub-key/", UploadPubKeyView.as_view(), name="encryption-upload-pub-key"
+    ),
+    path(
+        "encrypt/gen-rsa-keys/",
+        UploadPubKeyView.as_view(),
+        name="encryption-upload-pub-key",
+    ),
+    path("users/", include("users.urls")),
+    path("", include("users.urls")),
+    path(
+        "login/",
+        CustomLoginView.as_view(
+            redirect_authenticated_user=True,
+            template_name="users/login.html",
+            authentication_form=LoginForm,
+        ),
+        name="login",
+    ),
+    path(
+        "logout/",
+        auth_views.LogoutView.as_view(template_name="users/logout.html"),
+        name="logout",
+    ),
+    re_path(r"^oauth/", include("social_django.urls", namespace="social")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
-

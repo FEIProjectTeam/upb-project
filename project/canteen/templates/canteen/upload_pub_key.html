@@ -1,0 +1,10 @@
+{% extends "users/base.html" %}
+{% block title %} Upload Public Key {% endblock title %}
+{% block content %}
+    <h4 class="my-3"> Upload Public Key </h4>
+    <form action="#" method="post">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit" class="btn btn-primary mt-2">Submit</button>
+    </form>
+{% endblock content %}
