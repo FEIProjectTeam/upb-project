@@ -1,16 +1,16 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
-# from django.contrib.messages.views import SuccessMessageMixin
 from django.views import View
-# from django.contrib.auth.decorators import login_required
 
-from .forms import RegisterForm, LoginForm
+from .forms import RegisterForm
+
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 
 
 def home(request):
     return render(request, 'users/home.html')
-
 
 class RegisterView(View):
     form_class = RegisterForm
@@ -42,20 +42,7 @@ class RegisterView(View):
 
         return render(request, self.template_name, {'form': form})
 
-
-# Class based view that extends from the built in login view to add a remember me functionality
+@method_decorator(ratelimit(key='ip', rate='5/m', method='POST'),name='post')
 class CustomLoginView(LoginView):
-    form_class = LoginForm
-
     def form_valid(self, form):
-        remember_me = form.cleaned_data.get('remember_me')
-
-        if not remember_me:
-            # set session expiry to 0 seconds. So it will automatically close the session after the browser is closed.
-            self.request.session.set_expiry(0)
-
-            # Set session as modified to force data updates/cookie to be saved.
-            self.request.session.modified = True
-
-        # else browser session will be as long as the session cookie time "SESSION_COOKIE_AGE" defined in settings.py
         return super(CustomLoginView, self).form_valid(form)
