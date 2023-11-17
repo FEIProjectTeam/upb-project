@@ -8,3 +8,10 @@ class Meal(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Order(models.Model):
+    meal = models.ForeignKey('Meal', on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    special_requests = models.TextField(blank=True)
+    paid = models.BooleanField(default=False)

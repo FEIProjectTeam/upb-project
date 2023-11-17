@@ -17,7 +17,10 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework import status
 from django.shortcuts import render
 
-from canteen.forms import UploadPubKeyForm
+from canteen.forms import (
+    UploadPubKeyForm,
+    MakeOrder,
+)
 from canteen.models import Meal
 from canteen.serializers import MealSerializer
 from canteen.services.encryption import (
@@ -28,9 +31,16 @@ from canteen.services.encryption import (
     symmetric_decrypt,
     get_hmac,
     pem_to_pub_key,
-)
-from canteen.services.meals import get_all_meals
 
+)
+from canteen.services.meals import (
+    get_all_meals,
+    get_meal_by_id,
+)
+
+from canteen.services.orders import (
+    create_order,
+)
 
 def encrypt_page(request):
     return render(request, "communication.html")
@@ -139,3 +149,26 @@ class EncryptView(APIView):
                 {"status": "error", "message": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+class MealsMenu(LoginRequiredMixin, View):
+    template_name = "canteen/mealsMenuView.html"
+
+    def get(self, request):
+        meals = get_all_meals()
+        return render(request, self.template_name, {'mealsList': meals})
+
+
+class MealDetail(LoginRequiredMixin, View):
+    template_name = "canteen/mealDetailView.html"
+
+    def get(self, request, meal_id):
+        meal = get_meal_by_id(meal_id)
+        context = {'meal': meal}
+        return render(request, self.template_name, context)
+
+    def post(self, request, meal_id):
+        return JsonResponse(
+            {"status": "success", "message": "paid"},
+            status=status.HTTP_200_OK,
+        )

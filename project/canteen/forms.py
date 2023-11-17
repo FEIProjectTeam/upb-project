@@ -17,3 +17,6 @@ class UploadPubKeyForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ["public_key"]
+
+class MakeOrder(forms.ModelForm):
+    pass

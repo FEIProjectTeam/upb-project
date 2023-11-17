@@ -1,0 +1,37 @@
+{% extends "users/base.html" %}
+{% block title %} Menu {% endblock title %}
+{% block content %}
+    {% if meal %}
+    <div class="card p-2">
+        <h1 class="border-bottom">Meal order</h1>
+        <div class="card p-2">
+
+            <h3>Meal: {{ meal.name }}</h3>
+            <p>Price: <b>{{ meal.price }}</b>€</p>
+
+            <form method="post" action="{% url 'meal' meal.id %}">
+                {% csrf_token %}
+                <!-- Add form fields for order details -->
+                 {{ form.as_p }}
+                {% if price %}
+                    <p>Quantity: {{ quantity }}</p>
+                    <p><b>Total price: {{ price }}€</b></p>
+                    <a class="btn btn-primary" href="/orders">Continue to orders</a>
+                {% else %}
+                     <input type="submit" class="btn btn-primary" value="Place Order">
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    {% endif %}
+    {% if resp %}
+        <div class="alert  alert-success m-1" role="alert">
+            {{ resp }}
+        </div>
+    {% endif %}
+    {% if error %}
+        <div class="alert alert-danger m-1" role="alert">
+            {{ error }}
+        </div>
+    {% endif %}
+{% endblock content %}

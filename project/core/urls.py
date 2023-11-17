@@ -8,6 +8,8 @@ from canteen.views import (
     encrypt_page,
     GenRSAKeysView,
     DecryptPriKeyView,
+    MealsMenu,
+    MealDetail,
 )
 
 from django.urls import path, include
@@ -22,6 +24,9 @@ from users.views import CustomLoginView
 from users.forms import LoginForm
 
 urlpatterns = [
+    path("menu/", MealsMenu.as_view(), name="menu"),
+    path("meal/<int:meal_id>/", MealDetail.as_view(), name="meal"),
+
     path("admin/", admin.site.urls),
     path("api/meals/", ListMealsApi.as_view()),
     path("api/generate/", GenerateDummyDatabaseApi.as_view()),
