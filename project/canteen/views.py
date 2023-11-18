@@ -19,7 +19,7 @@ from django.shortcuts import render
 
 from canteen.forms import (
     UploadPubKeyForm,
-    MakeOrder,
+    OrderForm,
 )
 from canteen.models import Meal
 from canteen.serializers import MealSerializer
@@ -40,6 +40,8 @@ from canteen.services.meals import (
 
 from canteen.services.orders import (
     create_order,
+    get_order_by_id,
+    get_all_orders,
 )
 
 def encrypt_page(request):
@@ -163,12 +165,25 @@ class MealDetail(LoginRequiredMixin, View):
     template_name = "canteen/mealDetailView.html"
 
     def get(self, request, meal_id):
+        form = OrderForm(request.GET)
         meal = get_meal_by_id(meal_id)
-        context = {'meal': meal}
-        return render(request, self.template_name, context)
+        return render(request, self.template_name, {'meal': meal, 'form': form})
 
     def post(self, request, meal_id):
-        return JsonResponse(
-            {"status": "success", "message": "paid"},
-            status=status.HTTP_200_OK,
-        )
+        try:
+            user = request.user
+            quantity = request.POST.get('quantity')
+            order = create_order(get_meal_by_id(meal_id), quantity, False)
+            total_price = float(quantity)*float(order.meal.price)
+            return render(request, self.template_name, {'resp': "Order successfully created.", 'meal': order.meal, 'order': order, 'price': total_price})
+        except Exception as e:
+            return render(request, self.template_name, {'error': f"Unable to create order! `{e}`"})
+
+
+class Orders(LoginRequiredMixin, View):
+    template_name = "canteen/orderDetailView.html"
+
+    def get(self, request):
+        user = request.user
+        order = get_all_orders()
+        return render(request, self.template_name, {'order': order})

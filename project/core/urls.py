@@ -10,6 +10,7 @@ from canteen.views import (
     DecryptPriKeyView,
     MealsMenu,
     MealDetail,
+    Orders,
 )
 
 from django.urls import path, include
@@ -26,6 +27,7 @@ from users.forms import LoginForm
 urlpatterns = [
     path("menu/", MealsMenu.as_view(), name="menu"),
     path("meal/<int:meal_id>/", MealDetail.as_view(), name="meal"),
+    path("orders/", Orders.as_view(), name="orders"),
 
     path("admin/", admin.site.urls),
     path("api/meals/", ListMealsApi.as_view()),

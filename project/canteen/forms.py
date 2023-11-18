@@ -1,6 +1,7 @@
 from django import forms
 
 from users.models import Profile
+from canteen.models import Order
 
 
 class UploadPubKeyForm(forms.ModelForm):
@@ -18,5 +19,13 @@ class UploadPubKeyForm(forms.ModelForm):
         model = Profile
         fields = ["public_key"]
 
-class MakeOrder(forms.ModelForm):
-    pass
+
+class OrderForm(forms.ModelForm):
+    quantity = forms.DecimalField(
+        label="quantity",
+        required=True
+    )
+
+    class Meta:
+        model = Order
+        fields = ["quantity"]
