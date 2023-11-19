@@ -42,6 +42,7 @@ from canteen.services.orders import (
     get_order_by_id,
     get_all_orders_by_user,
     add_meal_to_order,
+    get_unpaid_order_data_for_user,
 )
 
 
@@ -186,8 +187,8 @@ class MealDetail(LoginRequiredMixin, View):
 
 
 class OrdersListView(LoginRequiredMixin, View):
-    template_name = "canteen/order_list.html"
+    template_name = "canteen/orders_list.html"
 
     def get(self, request):
-        orders = get_all_orders_by_user(request.user)
-        return render(request, self.template_name, {"orders": orders})
+        unpaid_order = get_unpaid_order_data_for_user(request.user)
+        return render(request, self.template_name, {"unpaid_order": unpaid_order})

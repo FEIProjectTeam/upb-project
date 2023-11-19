@@ -1,3 +1,5 @@
+from django.db.models import Sum, F, Max, Count
+
 from canteen.models import Order, OrderMeal, Meal
 from django.contrib.auth.models import User
 
@@ -10,6 +12,27 @@ def get_order_by_id(order_id):
 def get_all_orders_by_user(user: User):
     orders = Order.objects.filter(user=user)
     return orders
+
+
+def get_unpaid_order_data_for_user(user: User):
+    data = (
+        OrderMeal.objects.filter(
+            order__user=user,
+            order__paid=False,
+        )
+        .values(
+            "order_id",
+            "meal__name",
+            "meal__price",
+            "quantity",
+        )
+        .annotate(
+            meal_total_price=F("meal__price") * F("quantity"),
+        )
+        .distinct()
+    )
+    total_price = data.aggregate(total_price=Sum("meal_total_price"))["total_price"]
+    return {"data": list(data), "total_price": total_price}
 
 
 def get_unpaid_order_by_user(user: User):

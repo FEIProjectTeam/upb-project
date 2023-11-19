@@ -1,0 +1,23 @@
+{% extends "users/base.html" %}
+{% block title %} Orders list {% endblock title %}
+{% block content %}
+    <div class="card p-2">
+        <h1 class="border-bottom">My orders</h1>
+        {% if unpaid_order %}
+            <h3 class="border-bottom">Pending Order</h3>
+            <div class="card p-2">
+            {% for meal in unpaid_order.data %}
+            	<h5>{{ meal.meal__name }}</h5>
+                <div class="mb-3">
+                    <div>
+                    Unit Price: {{ meal.meal__price }}€
+                    Quantity: {{ meal.quantity }}
+                    </div>
+                    <div>Price: {{ meal.meal_total_price }}€</div>
+                </div>
+            {% endfor %}
+            <p class="border-top">Total Price: <b>{{ unpaid_order.total_price }}</b>€</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock content %}
