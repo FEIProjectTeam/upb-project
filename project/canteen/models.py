@@ -15,6 +15,7 @@ class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     meals = models.ManyToManyField(Meal, through="OrderMeal")
     paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(editable=False, auto_now_add=True)
 
     def __str__(self):
         return f"Order[id:{self.id}, user:{self.user.username}, paid:{self.paid}]"

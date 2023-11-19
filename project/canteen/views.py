@@ -2,10 +2,10 @@ import json
 import base64
 import traceback
 
-from cryptography.hazmat.primitives import serialization
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.views import View
 from django.views.generic import TemplateView
 from rest_framework.response import Response
@@ -13,24 +13,20 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework.parsers import JSONParser
-from rest_framework.decorators import api_view, parser_classes
+from rest_framework.decorators import parser_classes
 from rest_framework import status
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from canteen.forms import (
     UploadPubKeyForm,
     MealQuantityForm,
     ReviewForm,
+    HiddenOrderIDForm,
 )
 from canteen.models import Meal
 from canteen.serializers import MealSerializer
 from canteen.services.encryption import (
-    symmetric_encrypt,
-    generate_rsa_keys,
     encrypt_with_rsa_pub_key,
-    decrypt_with_rsa_prv_key,
-    symmetric_decrypt,
-    get_hmac,
     pem_to_pub_key,
 )
 from canteen.services.meals import (
@@ -39,11 +35,11 @@ from canteen.services.meals import (
 )
 
 from canteen.services.orders import (
-    create_order,
-    get_order_by_id,
-    get_all_orders_by_user,
     add_meal_to_order,
     get_unpaid_order_data_for_user,
+    get_unpaid_order_by_id_and_user,
+    pay_for_order,
+    get_paid_order_data_for_user,
 )
 
 from canteen.models import Review
@@ -232,3 +228,29 @@ class ReviewListView(View):
         reviews = Review.objects.filter(meal=meal)
         context = {'meal': meal, 'reviews': reviews}
         return render(request, self.template_name, context)
+
+    def post(self, request):
+        form = HiddenOrderIDForm(request.POST)
+        if form.is_valid():
+            order_id = form.cleaned_data["id"]
+            order = get_unpaid_order_by_id_and_user(order_id, request.user)
+            if order is None:
+                messages.error(request, "Failed to pay for order.")
+            else:
+                pay_for_order(order)
+                messages.success(request, "Order was paid.")
+        return redirect(reverse("orders-list"))
+
+
+class OrderDeleteView(LoginRequiredMixin, View):
+    def post(self, request):
+        form = HiddenOrderIDForm(request.POST)
+        if form.is_valid():
+            order_id = form.cleaned_data["id"]
+            order = get_unpaid_order_by_id_and_user(order_id, request.user)
+            if order is None:
+                messages.error(request, "Failed to delete order.")
+            else:
+                order.delete()
+                messages.warning(request, "Order was deleted.")
+        return redirect(reverse("orders-list"))

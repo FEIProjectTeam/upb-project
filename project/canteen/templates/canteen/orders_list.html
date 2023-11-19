@@ -4,20 +4,58 @@
     <div class="card p-2">
         <h1 class="border-bottom">My orders</h1>
         {% if unpaid_order %}
-            <h3 class="border-bottom">Pending Order</h3>
-            <div class="card p-2">
-            {% for meal in unpaid_order.data %}
-            	<h5>{{ meal.meal__name }}</h5>
+            <h3 class="border-bottom mt-3">Pending Order</h3>
+            <div class="card p-2 mb-3">
+                {% for meal in unpaid_order.data %}
+                <h5>{{ meal.meal__name }}</h5>
                 <div class="mb-3">
                     <div>
-                    Unit Price: {{ meal.meal__price }}€
+                    Unit Price: {{ meal.meal__price|floatformat:2 }}€
                     Quantity: {{ meal.quantity }}
                     </div>
-                    <div>Price: {{ meal.meal_total_price }}€</div>
+                    <div>Price: {{ meal.meal_total_price|floatformat:2 }}€</div>
                 </div>
-            {% endfor %}
-            <p class="border-top">Total Price: <b>{{ unpaid_order.total_price }}</b>€</p>
+                {% endfor %}
+                <div class="border-top">
+                    Total Price: <b>{{ unpaid_order.total_price|floatformat:2 }}</b>€<br>
+
+                    <form action="#" method="post" id="form-pay">
+                    {% csrf_token %}
+                     {{ unpaid_order.form }}
+                    </form>
+
+                    <form action="{% url 'order-delete' %}" method="post" id="form-delete">
+                    {% csrf_token %}
+                     {{ unpaid_order.form }}
+                    </form>
+
+                    <div>
+                        <button type="submit" form="form-pay" class="btn btn-success mt-2">Pay For Order</button>
+                        <button type="submit" form="form-delete" class="btn btn-danger mt-2">Delete Order</button>
+                    </div>
+                </div>
             </div>
+        {% endif %}
+
+        {% if paid_orders %}
+            <h3 class="border-bottom mt-3">Paid Orders</h3>
+            {% for _, paid_order in paid_orders.items %}
+            <div class="card p-2 mb-3">
+                {% for meal in paid_order.data %}
+                <h5>{{ meal.meal__name }}</h5>
+                <div class="mb-3">
+                    <div>
+                    Unit Price: {{ meal.meal__price|floatformat:2 }}€
+                    Quantity: {{ meal.quantity }}
+                    </div>
+                    <div>Price: {{ meal.meal_total_price|floatformat:2 }}€</div>
+                </div>
+                {% endfor %}
+                <div class="border-top">
+                    Total Price: <b>{{ paid_order.total_price|floatformat:2 }}</b>€<br>
+                </div>
+            </div>
+            {% endfor %}
         {% endif %}
     </div>
 {% endblock content %}

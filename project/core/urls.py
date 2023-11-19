@@ -13,6 +13,7 @@ from canteen.views import (
     OrdersListView,
     LeaveReviewView,
     ReviewListView,
+    OrderDeleteView,
 )
 
 from django.urls import path, include
@@ -29,7 +30,8 @@ from users.forms import LoginForm
 urlpatterns = [
     path("menu/", MealsMenuView.as_view(), name="menu"),
     path("meal/<int:meal_id>/", MealDetail.as_view(), name="meal"),
-    path("orders/", OrdersListView.as_view(), name="orders"),
+    path("orders/", OrdersListView.as_view(), name="orders-list"),
+    path("orders/delete/", OrderDeleteView.as_view(), name="order-delete"),
     path("admin/", admin.site.urls),
     path("api/meals/", ListMealsApi.as_view()),
     path("api/generate/", GenerateDummyDatabaseApi.as_view()),
