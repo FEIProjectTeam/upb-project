@@ -12,6 +12,7 @@ from canteen.views import (
     MealDetail,
     OrdersListView,
     OrderDeleteView,
+    InvoiceView,
 )
 
 from django.urls import path, include
@@ -30,6 +31,7 @@ urlpatterns = [
     path("meal/<int:meal_id>/", MealDetail.as_view(), name="meal"),
     path("orders/", OrdersListView.as_view(), name="orders-list"),
     path("orders/delete/", OrderDeleteView.as_view(), name="order-delete"),
+    path("invoice/<int:item>", InvoiceView.as_view(), name="invoice"),
     path("admin/", admin.site.urls),
     path("api/meals/", ListMealsApi.as_view()),
     path("api/generate/", GenerateDummyDatabaseApi.as_view()),

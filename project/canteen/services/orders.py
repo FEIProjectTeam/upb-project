@@ -10,6 +10,9 @@ def get_unpaid_order_by_id_and_user(order_id: int, user: User):
     order = Order.objects.filter(id=order_id, user=user, paid=False).first()
     return order
 
+def get_paid_order_by_id_and_user(order_id: int, user: User):
+    order = Order.objects.filter(id=order_id, user=user, paid=True).first()
+    return order
 
 def get_all_orders_by_user(user: User):
     orders = Order.objects.filter(user=user)
