@@ -1,0 +1,28 @@
+{% extends "users/base.html" %}
+{% block title %} Menu {% endblock title %}
+{% block content %}
+    <div class="card p-2">
+        <h1 class="border-bottom">Menu</h1>
+        <form method="GET" action="{% url 'menu' %}">
+            <div class="form-group">
+                <input class="form-control" type="text" name="q" placeholder="Search meals..." value="{{ request.GET.q }}">
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div> 
+        </form>
+        <div class="">
+            {% for meal in mealsList %}
+                <div class="card p-3 m-1 bg-white rounded">
+                     <div class="">
+                        <h3>{{ meal.name }}</h3>
+                        <p>Price: {{ meal.price }}</p>
+                    </div>
+                    <div class="">
+                        <a class="btn btn-primary" href="{% url 'meal' meal.id %}">Order</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock content %}

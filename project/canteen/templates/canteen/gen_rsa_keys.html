@@ -1,0 +1,76 @@
+{% extends "users/base.html" %}
+{% block title %} Key Pair Generation {% endblock title %}
+{% block content %}
+
+    <script src="/static/canteen/client.js"></script>
+    <h4 class="my-3">Generate RSA Keys</h4>
+    <div class="mt-3">
+        <button id="generateKey" class="btn btn-primary mt-2">Generate Keys</button>
+        <button id="downloadPrivateKey" class="btn btn-primary mt-2" style="display: none;">Download Private Key
+        </button>
+        <button id="sendKey" class="btn btn-primary mt-2" style="display: none;">Upload Public Key to Server</button>
+        <div class="mt-3">
+            <label for="publicKeyDisplay">Public Key:</label>
+            <textarea id="publicKeyDisplay" class="form-control" cols="40" rows="8" readonly></textarea>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('generateKey').addEventListener('click', generateAndSendKeys);
+        document.getElementById('sendKey').addEventListener('click', function () {
+            const pem = document.getElementById('publicKeyDisplay').textContent;
+            sendPublicKeyToServer(pem);
+        });
+        document.getElementById('downloadPrivateKey').addEventListener('click', function () {
+            const pem = document.getElementById('downloadPrivateKey').getAttribute('data-pem');
+            downloadPrivateKey(pem);
+        });
+
+        function generateAndSendKeys() {
+            window.crypto.subtle.generateKey(
+                {
+                    name: "RSA-OAEP",
+                    modulusLength: 2048,
+                    publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
+                    hash: {name: "SHA-256"}
+                },
+                true,
+                ["encrypt", "decrypt"]
+            )
+                .then(function (keyPair) {
+                    window.privateKey = keyPair.privateKey;
+                    return Promise.all([
+                        exportPublicKey(keyPair.publicKey),
+                        exportPrivateKey(keyPair.privateKey)
+                    ]);
+                })
+                .then(function ([publicPem, privatePem]) {
+                    document.getElementById('publicKeyDisplay').textContent = publicPem;
+                    document.getElementById('sendKey').style.display = 'block';
+
+                    // Store the private key PEM in the download button's data attribute
+                    let downloadBtn = document.getElementById('downloadPrivateKey');
+                    downloadBtn.setAttribute('data-pem', privatePem);
+                    downloadBtn.style.display = 'block';
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
+        }
+
+        function downloadPrivateKey(pem) {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:application/octet-stream;charset=utf-8,' + encodeURIComponent(pem));
+            element.setAttribute('download', 'private_key.pem');
+
+            // Prevent private key from lingering in the DOM
+            element.style.display = 'none';
+            document.body.appendChild(element);
+
+            element.click();
+
+            document.body.removeChild(element);
+        }
+    </script>
+
+{% endblock content %}
