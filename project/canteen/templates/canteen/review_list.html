@@ -7,7 +7,7 @@
             {% for review in reviews %}
                 <div class="card p-3 m-1 bg-white rounded">
                      <h3>Stars: {{ review.stars }} / 5</h3>
-                     <p class="mb-1">Reviewer: {{ review.user.username }}</p>
+                     <p class="mb-1">Reviewer: {{ review.user.first_name }} {{ review.user.last_name }}</p>
                      <p>Comment: {{ review.comment }}</p>
                 </div>
             {% empty %}
