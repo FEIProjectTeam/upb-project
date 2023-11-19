@@ -12,6 +12,8 @@
                     </div>
                     <div class="">
                         <a class="btn btn-primary" href="{% url 'meal' meal.id %}">Order</a>
+                        <a class="btn btn-success" href="{% url 'leave-review' meal.id %}">Leave a Review</a>
+                        <a class="btn btn-info" href="{% url 'review-list' meal.id %}">Reviews</a>
                     </div>
                 </div>
             {% endfor %}
