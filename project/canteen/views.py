@@ -154,7 +154,11 @@ class MealsMenuView(LoginRequiredMixin, View):
     template_name = "canteen/meals_menu.html"
 
     def get(self, request):
-        meals = get_all_meals()
+        query = request.GET.get('q')  # Retrieve the search query
+        if query:
+            meals = Meal.objects.filter(name__icontains=query)  # Filter meals based on the query
+        else:
+            meals = get_all_meals()  # Get all meals if no query
         return render(request, self.template_name, {"mealsList": meals})
 
 
