@@ -190,7 +190,16 @@ class OrdersListView(LoginRequiredMixin, View):
 
     def get(self, request):
         unpaid_order = get_unpaid_order_data_for_user(request.user)
-        return render(request, self.template_name, {"unpaid_order": unpaid_order})
+        if unpaid_order:
+            form = HiddenOrderIDForm()
+            form.fields["id"].initial = unpaid_order["data"][0]["order_id"]
+            unpaid_order["form"] = form
+        paid_orders = get_paid_order_data_for_user(request.user)
+        return render(
+            request,
+            self.template_name,
+            {"unpaid_order": unpaid_order, "paid_orders": paid_orders},
+        )
 
 
 class LeaveReviewView(View):
