@@ -37,6 +37,7 @@ from canteen.services.orders import (
     get_unpaid_order_data_for_user,
     get_unpaid_order_by_id_and_user,
     pay_for_order,
+    get_paid_order_data_for_user,
 )
 
 
@@ -189,7 +190,12 @@ class OrdersListView(LoginRequiredMixin, View):
             form = HiddenOrderIDForm()
             form.fields["id"].initial = unpaid_order["data"][0]["order_id"]
             unpaid_order["form"] = form
-        return render(request, self.template_name, {"unpaid_order": unpaid_order})
+        paid_orders = get_paid_order_data_for_user(request.user)
+        return render(
+            request,
+            self.template_name,
+            {"unpaid_order": unpaid_order, "paid_orders": paid_orders},
+        )
 
     def post(self, request):
         form = HiddenOrderIDForm(request.POST)
@@ -201,7 +207,7 @@ class OrdersListView(LoginRequiredMixin, View):
             else:
                 pay_for_order(order)
                 messages.success(request, "Order was paid.")
-        return render(request, self.template_name, {})
+        return redirect(reverse("orders-list"))
 
 
 class OrderDeleteView(LoginRequiredMixin, View):

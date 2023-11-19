@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.db.models import Sum, F, Max, Count
 
 from canteen.models import Order, OrderMeal, Meal
@@ -35,6 +37,35 @@ def get_unpaid_order_data_for_user(user: User):
         return None
     total_price = data.aggregate(total_price=Sum("meal_total_price"))["total_price"]
     return {"data": list(data), "total_price": total_price}
+
+
+def get_paid_order_data_for_user(user: User):
+    data = (
+        OrderMeal.objects.filter(
+            order__user=user,
+            order__paid=True,
+        )
+        .values(
+            "order_id",
+            "meal__name",
+            "meal__price",
+            "quantity",
+        )
+        .annotate(
+            meal_total_price=F("meal__price") * F("quantity"),
+        )
+        .distinct()
+        .order_by("-order__created_at")
+    )
+    if not data.exists():
+        return None
+    structured_data = defaultdict(lambda: {"data": [], "total_price": 0})
+    for row in data:
+        order_id = row["order_id"]
+        structured_data[order_id]["data"].append(row)
+        structured_data[order_id]["total_price"] += row["meal_total_price"]
+    structured_data.default_factory = None
+    return structured_data
 
 
 def get_unpaid_order_by_user(user: User):
