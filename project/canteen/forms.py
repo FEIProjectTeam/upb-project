@@ -1,7 +1,7 @@
 from django import forms
 
 from users.models import Profile
-from canteen.models import Order
+from canteen.models import OrderMeal
 
 
 class UploadPubKeyForm(forms.ModelForm):
@@ -20,12 +20,14 @@ class UploadPubKeyForm(forms.ModelForm):
         fields = ["public_key"]
 
 
-class OrderForm(forms.ModelForm):
-    quantity = forms.DecimalField(
-        label="quantity",
-        required=True
+class MealQuantityForm(forms.ModelForm):
+    quantity = forms.IntegerField(
+        min_value=1,
+        label="Quantity",
+        required=True,
+        widget=forms.NumberInput(attrs={"value": "1", "required": "True"}),
     )
 
     class Meta:
-        model = Order
+        model = OrderMeal
         fields = ["quantity"]

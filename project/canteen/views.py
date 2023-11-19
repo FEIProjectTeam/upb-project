@@ -19,7 +19,7 @@ from django.shortcuts import render
 
 from canteen.forms import (
     UploadPubKeyForm,
-    OrderForm,
+    MealQuantityForm,
 )
 from canteen.models import Meal
 from canteen.serializers import MealSerializer
@@ -31,7 +31,6 @@ from canteen.services.encryption import (
     symmetric_decrypt,
     get_hmac,
     pem_to_pub_key,
-
 )
 from canteen.services.meals import (
     get_all_meals,
@@ -41,8 +40,10 @@ from canteen.services.meals import (
 from canteen.services.orders import (
     create_order,
     get_order_by_id,
-    get_all_orders,
+    get_all_orders_by_user,
+    add_meal_to_order,
 )
+
 
 def encrypt_page(request):
     return render(request, "communication.html")
@@ -153,37 +154,40 @@ class EncryptView(APIView):
             )
 
 
-class MealsMenu(LoginRequiredMixin, View):
-    template_name = "canteen/mealsMenuView.html"
+class MealsMenuView(LoginRequiredMixin, View):
+    template_name = "canteen/meals_menu.html"
 
     def get(self, request):
         meals = get_all_meals()
-        return render(request, self.template_name, {'mealsList': meals})
+        return render(request, self.template_name, {"mealsList": meals})
 
 
 class MealDetail(LoginRequiredMixin, View):
-    template_name = "canteen/mealDetailView.html"
+    template_name = "canteen/meal_detail.html"
 
     def get(self, request, meal_id):
-        form = OrderForm(request.GET)
+        form = MealQuantityForm()
         meal = get_meal_by_id(meal_id)
-        return render(request, self.template_name, {'meal': meal, 'form': form})
+        if meal is None:
+            return render(request, "canteen/404.html")
+        return render(request, self.template_name, {"meal": meal, "form": form})
 
     def post(self, request, meal_id):
-        try:
-            user = request.user
-            quantity = request.POST.get('quantity')
-            order = create_order(get_meal_by_id(meal_id), quantity, False)
-            total_price = float(quantity)*float(order.meal.price)
-            return render(request, self.template_name, {'resp': "Order successfully created.", 'meal': order.meal, 'order': order, 'price': total_price})
-        except Exception as e:
-            return render(request, self.template_name, {'error': f"Unable to create order! `{e}`"})
+        form = MealQuantityForm(request.POST)
+        meal = get_meal_by_id(meal_id)
+        if meal is None:
+            return render(request, "canteen/404.html")
+        if form.is_valid():
+            add_meal_to_order(request.user, meal, form.cleaned_data["quantity"])
+            messages.success(request, "Meal was added to your order.")
+        else:
+            messages.error(request, "Meal failed to be added to your order.")
+        return render(request, self.template_name, {"meal": meal, "form": form})
 
 
-class Orders(LoginRequiredMixin, View):
-    template_name = "canteen/orderDetailView.html"
+class OrdersListView(LoginRequiredMixin, View):
+    template_name = "canteen/order_list.html"
 
     def get(self, request):
-        user = request.user
-        order = get_all_orders()
-        return render(request, self.template_name, {'order': order})
+        orders = get_all_orders_by_user(request.user)
+        return render(request, self.template_name, {"orders": orders})

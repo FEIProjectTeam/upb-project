@@ -1,5 +1,7 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import CharField, FloatField
+
 
 class Meal(models.Model):
     name = CharField(max_length=128, unique=True)
@@ -10,6 +12,15 @@ class Meal(models.Model):
 
 
 class Order(models.Model):
-    meal = models.ForeignKey('Meal', on_delete=models.CASCADE)
-    quantity = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    meals = models.ManyToManyField(Meal, through="OrderMeal")
     paid = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Order[id:{self.id}, user:{self.user.username}, paid:{self.paid}]"
+
+
+class OrderMeal(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    meal = models.ForeignKey(Meal, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
