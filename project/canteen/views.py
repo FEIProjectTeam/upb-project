@@ -1,7 +1,9 @@
 import json
 import base64
 import traceback
+import io
 
+from reportlab.platypus.tables import Table, TableStyle
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
@@ -10,11 +12,14 @@ from django.views.generic import TemplateView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import parser_classes
 from rest_framework import status
 from django.shortcuts import render, redirect
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
+from reportlab.lib.pagesizes import letter
 
 from canteen.forms import (
     UploadPubKeyForm,
@@ -37,6 +42,7 @@ from canteen.services.orders import (
     add_meal_to_order,
     get_unpaid_order_data_for_user,
     get_unpaid_order_by_id_and_user,
+    get_paid_order_by_id_and_user,
     pay_for_order,
     get_paid_order_data_for_user,
 )
@@ -266,3 +272,75 @@ class OrderDeleteView(LoginRequiredMixin, View):
                 order.delete()
                 messages.warning(request, "Order was deleted.")
         return redirect(reverse("orders-list"))
+
+
+class InvoiceView(LoginRequiredMixin, View):
+    def get(self, request, item):
+        order = get_paid_order_by_id_and_user(item, request.user)
+        if order is None:
+            messages.error(request, "Failed to create invoice for order.")
+            return redirect(reverse("orders-list"))
+
+        buf = io.BytesIO()
+        c = canvas.Canvas(buf, pagesize=letter)
+        textob = c.beginText()
+        textob.setTextOrigin(inch, inch)
+        textob.setFont("Helvetica", 14)
+
+        meals = order.ordermeal_set.all()
+        meal_data = [["Canteen"], ["Your order:"], ["Item", "Quantity", "Price"]]
+
+        total_price = 0
+        total_quantity = 0
+        for order_meal in meals:
+            name = order_meal.meal.name
+            quantity = order_meal.quantity
+            price = (
+                order_meal.meal.price * quantity
+            )  # Calculate total price for the quantity
+            formatted_price = "{:.2f} €".format(price)
+            data = [name, quantity, formatted_price]
+            total_price += price
+            total_quantity += quantity
+            meal_data.append(data)
+
+        formatted_total_price = "{:.2f} €".format(total_price)
+        meal_data.append(["Total", total_quantity, formatted_total_price])
+        data = meal_data
+        table_width = letter[0] - 2 * inch
+        table_height = letter[1] - 2 * inch
+        top_margin = inch
+
+        t = Table(
+            data, colWidths=[table_width * 0.7, table_width * 0.1, table_width * 0.2]
+        )
+
+        x_position = inch
+        y_position = letter[1] - 2 * inch - top_margin
+
+        style = TableStyle(
+            [
+                ("SPAN", (0, 0), (-1, 0)),
+                ("SPAN", (0, 1), (-1, 1)),
+                ("ALIGN", (0, 0), (0, 0), "CENTER"),
+                ("ALIGN", (1, 0), (1, -1), "CENTER"),
+                ("ALIGN", (-1, 0), (-1, -1), "RIGHT"),
+                ("LINEBELOW", (0, 0), (-1, 0), 1, (0, 0, 0)),
+                ("LINEBELOW", (0, 1), (-1, 1), 1, (0, 0, 0)),
+                ("LINEBELOW", (0, 2), (-1, 2), 1, (0, 0, 0)),
+                ("LINEABOVE", (0, -1), (-1, -1), 1, (0, 0, 0)),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("FONT", (0, -1), (-1, -1), "Helvetica-Bold"),
+            ]
+        )
+
+        t.setStyle(style)
+
+        t.wrapOn(c, table_width, table_height)
+        t.drawOn(c, x_position, y_position)
+
+        c.showPage()
+        c.save()
+        buf.seek(0)
+
+        return FileResponse(buf, as_attachment=True, filename="faktura.pdf")

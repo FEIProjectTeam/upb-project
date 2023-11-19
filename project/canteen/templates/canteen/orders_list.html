@@ -54,6 +54,11 @@
                 <div class="border-top">
                     Total Price: <b>{{ paid_order.total_price|floatformat:2 }}</b>€<br>
                 </div>
+                <div>
+                    <a href="{% url 'invoice' paid_order.data.0.order_id %}">
+                        <button class="btn btn-danger mt-2">Download PDF Invoice</button>
+                    </a>
+                </div>
             </div>
             {% endfor %}
         {% endif %}
