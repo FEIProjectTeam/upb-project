@@ -25,7 +25,7 @@ class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE)
     stars = models.PositiveIntegerField()
-    comment = CharField(max_length=128)
+    comment = CharField(max_length=128, null=False, blank=True)
 
 
 class OrderMeal(models.Model):

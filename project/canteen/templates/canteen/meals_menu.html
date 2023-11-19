@@ -8,11 +8,11 @@
                 <div class="card p-3 m-1 bg-white rounded">
                      <div class="">
                         <h3>{{ meal.name }}</h3>
-                        <p>Price: {{ meal.price }}</p>
+                        <p>Price: {{ meal.price }}€</p>
                     </div>
                     <div class="">
-                        <a class="btn btn-primary" href="{% url 'meal' meal.id %}">Order</a>
-                        <a class="btn btn-success" href="{% url 'leave-review' meal.id %}">Leave a Review</a>
+                        <a class="btn btn-success" href="{% url 'meal' meal.id %}">Order</a>
+                        <a class="btn btn-primary" href="{% url 'leave-review' meal.id %}">Leave a Review</a>
                         <a class="btn btn-info" href="{% url 'review-list' meal.id %}">Reviews</a>
                     </div>
                 </div>

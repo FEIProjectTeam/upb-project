@@ -4,7 +4,6 @@ import traceback
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views import View
 from django.views.generic import TemplateView
@@ -43,6 +42,7 @@ from canteen.services.orders import (
 )
 
 from canteen.models import Review
+from canteen.services.reviews import submit_review, get_review_for_user_and_meal
 
 
 def encrypt_page(request):
@@ -185,6 +185,46 @@ class MealDetail(LoginRequiredMixin, View):
         return render(request, self.template_name, {"meal": meal, "form": form})
 
 
+class LeaveReviewView(LoginRequiredMixin, View):
+    template_name = "canteen/leave_review.html"
+
+    def get(self, request, meal_id):
+        meal = get_meal_by_id(meal_id)
+        if meal is None:
+            return render(request, "canteen/404.html")
+        review = get_review_for_user_and_meal(request.user, meal)
+        if review is None:
+            form = ReviewForm()
+        else:
+            form = ReviewForm(instance=review)
+        context = {"meal": meal, "form": form}
+        return render(request, self.template_name, context)
+
+    def post(self, request, meal_id):
+        meal = get_meal_by_id(meal_id)
+        form = ReviewForm(request.POST)
+
+        if form.is_valid():
+            stars = form.cleaned_data["stars"]
+            comment = form.cleaned_data["comment"]
+
+            submit_review(request.user, meal, stars, comment)
+            return redirect("menu")
+
+        context = {"meal": meal, "form": form}
+        return render(request, self.template_name, context)
+
+
+class ReviewListView(LoginRequiredMixin, View):
+    template_name = "canteen/review_list.html"
+
+    def get(self, request, meal_id):
+        meal = get_meal_by_id(meal_id)
+        reviews = Review.objects.filter(meal=meal)
+        context = {"meal": meal, "reviews": reviews}
+        return render(request, self.template_name, context)
+
+
 class OrdersListView(LoginRequiredMixin, View):
     template_name = "canteen/orders_list.html"
 
@@ -200,43 +240,6 @@ class OrdersListView(LoginRequiredMixin, View):
             self.template_name,
             {"unpaid_order": unpaid_order, "paid_orders": paid_orders},
         )
-
-
-class LeaveReviewView(View):
-    template_name = 'canteen/leave_review.html'
-
-    def get(self, request, meal_id):
-        meal = get_meal_by_id(meal_id)
-        form = ReviewForm()
-        context = {'meal': meal, 'form': form}
-        return render(request, self.template_name, context)
-
-    def post(self, request, meal_id):
-        meal = get_meal_by_id(meal_id)
-        form = ReviewForm(request.POST)
-
-        if form.is_valid():
-            stars = form.cleaned_data['stars']
-            comment = form.cleaned_data['comment']
-
-            # Create and save the review
-            Review.objects.create(user=request.user, meal=meal, stars=stars, comment=comment)
-
-            # You can redirect to a thank you page or the meal detail page
-            return redirect('menu')
-
-        context = {'meal': meal, 'form': form}
-        return render(request, self.template_name, context)
-
-
-class ReviewListView(View):
-    template_name = 'canteen/review_list.html'
-
-    def get(self, request, meal_id):
-        meal = get_meal_by_id(meal_id)
-        reviews = Review.objects.filter(meal=meal)
-        context = {'meal': meal, 'reviews': reviews}
-        return render(request, self.template_name, context)
 
     def post(self, request):
         form = HiddenOrderIDForm(request.POST)

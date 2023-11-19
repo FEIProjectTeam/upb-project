@@ -3,12 +3,16 @@
 {% block content %}
     <div class="card p-2">
         <h1 class="border-bottom">Reviews for {{ meal.name }}</h1>
-        <div class="">
+        <div>
             {% for review in reviews %}
                 <div class="card p-3 m-1 bg-white rounded">
-                     <h3>{{ review.user.username }}</h3>
-                     <p>Stars: {{ review.stars }} / 5</p>
+                     <h3>Stars: {{ review.stars }} / 5</h3>
+                     <p class="mb-1">Reviewer: {{ review.user.username }}</p>
                      <p>Comment: {{ review.comment }}</p>
+                </div>
+            {% empty %}
+                <div class="card p-3 bg-white rounded">
+                     <h5 class="mb-0">No reviews yet, be first!</h5>
                 </div>
             {% endfor %}
         </div>
