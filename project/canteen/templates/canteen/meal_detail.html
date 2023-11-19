@@ -1,0 +1,27 @@
+{% extends "users/base.html" %}
+{% block title %} Menu {% endblock title %}
+{% block content %}
+    <div class="card p-2">
+        <h1 class="border-bottom">Meal order</h1>
+        <div class="card p-2">
+            <h3>Meal: {{ meal.name }}</h3>
+            <p>Price: <b>{{ meal.price }}</b>€</p>
+
+            <form action="#" method="post">
+                {% csrf_token %}
+                 {{ form }}
+                <div><button type="submit" class="btn btn-primary mt-2">Place Order</button></div>
+            </form>
+        </div>
+    </div>
+{#    {% if resp %}#}
+{#        <div class="alert  alert-success m-1" role="alert">#}
+{#            {{ resp }}#}
+{#        </div>#}
+{#    {% endif %}#}
+{#    {% if error %}#}
+{#        <div class="alert alert-danger m-1" role="alert">#}
+{#            {{ error }}#}
+{#        </div>#}
+{#    {% endif %}#}
+{% endblock content %}
