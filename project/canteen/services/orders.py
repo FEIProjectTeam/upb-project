@@ -4,8 +4,8 @@ from canteen.models import Order, OrderMeal, Meal
 from django.contrib.auth.models import User
 
 
-def get_order_by_id(order_id):
-    order = Order.objects.get(id=order_id)
+def get_unpaid_order_by_id_and_user(order_id: int, user: User):
+    order = Order.objects.filter(id=order_id, user=user, paid=False).first()
     return order
 
 
@@ -31,6 +31,8 @@ def get_unpaid_order_data_for_user(user: User):
         )
         .distinct()
     )
+    if not data.exists():
+        return None
     total_price = data.aggregate(total_price=Sum("meal_total_price"))["total_price"]
     return {"data": list(data), "total_price": total_price}
 
@@ -55,3 +57,8 @@ def add_meal_to_order(user: User, meal: Meal, quantity: int):
     else:
         order_meal.quantity = order_meal.quantity + quantity
         order_meal.save()
+
+
+def pay_for_order(order: Order):
+    order.paid = True
+    order.save()
