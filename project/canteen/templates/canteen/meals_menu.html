@@ -3,6 +3,16 @@
 {% block content %}
     <div class="card p-2">
         <h1 class="border-bottom">Menu</h1>
+        <form method="GET" action="{% url 'menu' %}">
+            <div class="form-row mx-0">
+                <div class="col-9 col-sm-10">
+                    <input class="form-control" type="text" name="q" placeholder="Search meals..." value="{{ request.GET.q }}">
+                </div>
+                <div class="col-3 col-sm-2">
+                    <button class="btn btn-primary btn-block" type="submit">Search</button>
+                </div>
+            </div>
+        </form>
         <div class="">
             {% for meal in mealsList %}
                 <div class="card p-3 m-1 bg-white rounded">
