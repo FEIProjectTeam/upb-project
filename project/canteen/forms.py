@@ -31,3 +31,17 @@ class MealQuantityForm(forms.ModelForm):
     class Meta:
         model = OrderMeal
         fields = ["quantity"]
+
+
+class ReviewForm(forms.Form):
+    stars = forms.IntegerField(
+        label='Stars (between 0 and 5)',
+        min_value=0,
+        max_value=5,
+        widget=forms.NumberInput(attrs={'class': 'form-control'}),
+    )
+    comment = forms.CharField(
+        label='Comment',
+        widget=forms.Textarea(attrs={'class': 'form-control'}),
+        required=False,
+    )

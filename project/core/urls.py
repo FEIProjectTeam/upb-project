@@ -11,6 +11,8 @@ from canteen.views import (
     MealsMenuView,
     MealDetail,
     OrdersListView,
+    LeaveReviewView,
+    ReviewListView,
 )
 
 from django.urls import path, include
@@ -33,6 +35,8 @@ urlpatterns = [
     path("api/generate/", GenerateDummyDatabaseApi.as_view()),
     path("encrypt/", EncryptView.as_view()),
     path("comun/", encrypt_page, name="encrypt-page"),
+    path("leave_review/<int:meal_id>/", LeaveReviewView.as_view(), name="leave-review"),
+    path("reviews/<int:meal_id>/", ReviewListView.as_view(), name="review-list"),
     path(
         "encrypt/pub-key/", UploadPubKeyView.as_view(), name="encryption-upload-pub-key"
     ),

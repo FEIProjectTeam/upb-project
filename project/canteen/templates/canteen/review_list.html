@@ -1,0 +1,16 @@
+{% extends "users/base.html" %}
+{% block title %} Reviews {% endblock title %}
+{% block content %}
+    <div class="card p-2">
+        <h1 class="border-bottom">Reviews</h1>
+        <div class="">
+            {% for review in reviews %}
+                <div class="card p-3 m-1 bg-white rounded">
+                     <h3>{{ review.meal.name }}</h3>
+                     <p>Stars: {{ review.stars }}</p>
+                     <p>Comment: {{ review.comment }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock content %}

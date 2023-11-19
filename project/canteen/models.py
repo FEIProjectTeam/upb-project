@@ -20,6 +20,13 @@ class Order(models.Model):
         return f"Order[id:{self.id}, user:{self.user.username}, paid:{self.paid}]"
 
 
+class Review(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    meal = models.ForeignKey(Meal, on_delete=models.CASCADE)
+    stars = models.PositiveIntegerField()
+    comment = CharField(max_length=128)
+
+
 class OrderMeal(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE)

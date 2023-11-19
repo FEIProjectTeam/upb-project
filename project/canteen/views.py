@@ -5,7 +5,7 @@ import traceback
 from cryptography.hazmat.primitives import serialization
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views import View
 from django.views.generic import TemplateView
 from rest_framework.response import Response
@@ -20,6 +20,7 @@ from django.shortcuts import render
 from canteen.forms import (
     UploadPubKeyForm,
     MealQuantityForm,
+    ReviewForm,
 )
 from canteen.models import Meal
 from canteen.serializers import MealSerializer
@@ -44,6 +45,8 @@ from canteen.services.orders import (
     add_meal_to_order,
     get_unpaid_order_data_for_user,
 )
+
+from canteen.models import Review
 
 
 def encrypt_page(request):
@@ -192,3 +195,40 @@ class OrdersListView(LoginRequiredMixin, View):
     def get(self, request):
         unpaid_order = get_unpaid_order_data_for_user(request.user)
         return render(request, self.template_name, {"unpaid_order": unpaid_order})
+
+
+class LeaveReviewView(View):
+    template_name = 'canteen/leave_review.html'
+
+    def get(self, request, meal_id):
+        meal = get_meal_by_id(meal_id)
+        form = ReviewForm()
+        context = {'meal': meal, 'form': form}
+        return render(request, self.template_name, context)
+
+    def post(self, request, meal_id):
+        meal = get_meal_by_id(meal_id)
+        form = ReviewForm(request.POST)
+
+        if form.is_valid():
+            stars = form.cleaned_data['stars']
+            comment = form.cleaned_data['comment']
+
+            # Create and save the review
+            Review.objects.create(user=request.user, meal=meal, stars=stars, comment=comment)
+
+            # You can redirect to a thank you page or the meal detail page
+            return redirect('menu')
+
+        context = {'meal': meal, 'form': form}
+        return render(request, self.template_name, context)
+
+
+class ReviewListView(View):
+    template_name = 'canteen/review_list.html'
+
+    def get(self, request, meal_id):
+        meal = get_meal_by_id(meal_id)
+        reviews = Review.objects.filter(meal=meal)
+        context = {'meal': meal, 'reviews': reviews}
+        return render(request, self.template_name, context)
